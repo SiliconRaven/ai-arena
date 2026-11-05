@@ -1,0 +1,110 @@
+{
+  "comment": "Knockback arena rules v0 (docs/DESIGN.md): a square arena centred at the origin, half side arena.half. Every number is a test value, to be calibrated with the sparring partners. Lengths in arena units, speeds in units per tick, times in ticks unless named *_turns.",
+  "version": "kb-0.12",
+  "min_players": 4,
+  "max_players": 8,
+  "tick_rate": 30,
+  "decision_ticks": 6,
+  "max_turns": 200,
+  "precision": 4,
+  "arena": {
+    "half": 16.5,
+    "spawn_radius": 12.0
+  },
+  "shrink": {
+    "first_turn": 25,
+    "every": 25,
+    "warn_turns": 10,
+    "shrink_turns": 10,
+    "step": 2.5,
+    "min_half": 0.5
+  },
+  "player": {
+    "radius": 1.0
+  },
+  "physics": {
+    "friction": 0.06,
+    "restitution": 0.9,
+    "min_speed": 0.001,
+    "min_impulse": 0.03
+  },
+  "move": {
+    "accel": 0.018,
+    "charging_factor": 0.2
+  },
+  "bar": {
+    "charge_rate": 0.04,
+    "refill_rate": 0.02,
+    "pause_ticks": 30,
+    "overcharge_ticks": 45
+  },
+  "dash": {
+    "speed": 0.9
+  },
+  "hammer": {
+    "charging_factor": 0.3,
+    "reach": 3.2,
+    "cone_cos": 0.5,
+    "power": 0.9,
+    "recoil": 0.15,
+    "recover_ticks": 5,
+    "cooldown_ticks": 60
+  },
+  "attack": {
+    "windup_ticks": 9,
+    "reach": 2.8,
+    "cone_cos": 0.5,
+    "power": 0.35,
+    "recoil": 0.05,
+    "recover_ticks": 6,
+    "cooldown_ticks": 15
+  },
+  "bomb": {
+    "radius": 0.6,
+    "mass": 0.5,
+    "friction": 0.05,
+    "throw_speed": 0.5,
+    "spawn_gap": 0.2,
+    "fuse_min": 24,
+    "fuse_max": 90,
+    "cooldown_ticks": 90,
+    "blast_radius": 3.5,
+    "blast_power": 1.4
+  },
+  "walls": {
+    "thickness": 0.5,
+    "spring_per_quadrant": 2,
+    "wall_per_quadrant": 2,
+    "clearance": 1.2,
+    "gap": 2.4,
+    "min_len": 2.5,
+    "max_len": 5.0,
+    "tries": 200,
+    "restitution": 0.8,
+    "regen_ticks": 300,
+    "warn_ticks": 90,
+    "regen_push": 0.5
+  },
+  "spring": {
+    "factor": 1.5,
+    "max_speed": 0.5
+  },
+  "kill_credit_ticks": 90,
+  "time_limits": {
+    "first": 2.0,
+    "other": 0.1
+  },
+  "program_time_share": 0.8,
+  "max_strikes": 3,
+  "score": {
+    "rank_points": 1,
+    "kill_points": 10
+  },
+  "sandbox": {
+    "memory": "512m",
+    "cpus": 1,
+    "pids": 64,
+    "tmp": "16m",
+    "start_timeout": 60
+  }
+}

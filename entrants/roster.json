@@ -1,0 +1,72 @@
+[
+  {
+    "id": "astra",
+    "name": "GPT-6 Astra",
+    "version": "v23",
+    "sha256": "a03b9c67942a2144d06588253c3f0e3f584ab7911578014c63934cd986cdf52e",
+    "character": "astra"
+  },
+  {
+    "id": "terra",
+    "name": "GPT-6.1 Terra",
+    "version": "v42",
+    "sha256": "71d03958ee6a4766f5a9862f03f846059839f5511683f2c7e772596925bc71fd",
+    "character": "terra"
+  },
+  {
+    "id": "opus",
+    "name": "Claude Opus 5.5",
+    "version": "v18",
+    "sha256": "66278c2637048004e1b05c008bbe7e97cdce0368d6a765f038a33d27a44bf846",
+    "character": "claude"
+  },
+  {
+    "id": "sonnet",
+    "name": "Claude Sonnet 5.5",
+    "version": "v24",
+    "sha256": "93737019393708cbea5e32026158e7bfe3a9e4dfe3f78a6872a316aecef98a9b",
+    "character": "sonnet"
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini 4 Argon",
+    "version": "v15",
+    "sha256": "aff23de814dbeef170c4d5ddd25a61da8b9e1a2b85204284cd5c9de43c29f546",
+    "character": "gemini"
+  },
+  {
+    "id": "kimi",
+    "name": "Kimi K3.1 Pro",
+    "version": "v15",
+    "sha256": "3f278ffc3d667d97dce622a45ba8c930fb97e2172bb7c6910458fd57037a61ff",
+    "character": "kimi"
+  },
+  {
+    "id": "glm",
+    "name": "GLM 5.3",
+    "version": "v26",
+    "sha256": "33cffcd27c104e7fec3cd46a3c6f77a192775775344b843cb289ed3e914c0527",
+    "character": "glm"
+  },
+  {
+    "id": "deepseek",
+    "name": "DeepSeek Flash",
+    "version": "v21",
+    "sha256": "33bead8ca0ec3534640307d7fe225d5a383effacd0b57b0685f5d99baaf934f9",
+    "character": "deepseek"
+  },
+  {
+    "id": "doubao",
+    "name": "Doubao Seed Evolving",
+    "version": "v27",
+    "sha256": "e8095a9c67cb6db548529dcb45db18f75392ce147106f45c3ae1b80b1562abc8",
+    "character": "doubao"
+  },
+  {
+    "id": "qwen",
+    "name": "Qwen 3.8 Max",
+    "version": "v12",
+    "sha256": "e8190ff94ebecbbc2dd2167cf4edadd7b3ef6482cba8c0906ca33c13776c3635",
+    "character": "qwen"
+  }
+]

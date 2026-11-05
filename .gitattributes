@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+entrants/**/*.cpp -text
+entrants/**/*.hpp -text

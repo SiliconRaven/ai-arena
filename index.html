@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>擂台乱斗 · 本地对战</title>
+<style>
+:root {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  color: #23324c; background: #f5f2e9; font-size: 16px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { background: #253d58; color: white; padding: 26px max(24px, calc((100% - 1180px) / 2)); border-bottom: 5px solid #ffd266; }
+h1 { margin: 7px 0 4px; font-size: 30px; }
+header p { color: #d5e1ea; margin: 0; font-size: 14px; }
+.layout { max-width: 1180px; margin: 28px auto; display: grid; grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr); gap: 22px; padding: 0 24px 40px; }
+.panel { background: white; border: 1px solid #e0ded7; border-radius: 16px; padding: 24px; box-shadow: 0 6px 25px #283d5010; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.head h2 { font-size: 20px; margin: 0; }
+.badge { font-size: 12px; color: #4f6682; background: #edf3f6; padding: 5px 10px; border-radius: 20px; }
+label.legend { display: block; font-weight: 700; margin: 18px 0 8px; }
+input[type=text], input[type=number] { width: 100%; padding: 12px; border: 1px solid #c7d2dc; border-radius: 8px; font: inherit; color: inherit; background: #fbfdfe; }
+input:focus { outline: 3px solid #a5d5ef; outline-offset: 1px; }
+.hint { font-size: 13px; color: #64758b; line-height: 1.6; margin: 7px 0; }
+.roster { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice { display: flex; gap: 9px; align-items: center; border: 1px solid #dce4e8; border-radius: 9px; padding: 10px; min-height: 50px; cursor: pointer; }
+.choice:has(input:checked) { background: #eaf7f4; border-color: #62bbaa; }
+.choice input { accent-color: #168575; width: 17px; height: 17px; flex: none; }
+.choice b { font-size: 14px; display: block; }
+.choice small { font-size: 11px; color: #718199; }
+.choice img { width: 36px; height: 36px; border-radius: 50%; object-fit: contain; background: #f4f1eb; flex: none; }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+button { width: 100%; border: 0; background: #147d6c; color: white; border-radius: 10px; font: inherit; font-weight: 700; padding: 14px; cursor: pointer; margin-top: 22px; }
+button:hover { background: #10695a; }
+button:disabled { background: #9caeaa; cursor: default; }
+.status { color: #58718b; line-height: 1.6; }
+.empty { border: 1px dashed #becdd5; background: #f7fbfb; border-radius: 12px; padding: 35px 22px; color: #708299; text-align: center; margin-top: 28px; }
+.progress { height: 9px; border-radius: 9px; background: #e6efee; overflow: hidden; margin: 14px 0; }
+.progress span { display: block; height: 100%; background: #36ac92; transition: width .3s; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 18px 0; text-align: right; }
+th, td { padding: 10px 4px; border-bottom: 1px solid #edf0ef; }
+th { font-size: 12px; color: #748598; font-weight: 500; }
+th:first-child, td:first-child { text-align: left; }
+tbody tr:first-child td { font-weight: 700; color: #127667; }
+.matches { display: grid; gap: 8px; margin-top: 16px; }
+.match { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #f5f8f8; border-radius: 8px; padding: 11px 13px; font-size: 14px; }
+.match span { color: #697c8b; }
+.match a { color: #147d6c; font-weight: 700; white-space: nowrap; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; font-size: 13px; }
+.pagination button { width: auto; margin: 0; padding: 8px 12px; font-size: 13px; }
+.error { color: #a53535; white-space: pre-wrap; overflow-wrap: anywhere; }
+footer { font-size: 12px; color: #7a8996; margin-top: 22px; line-height: 1.6; }
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; margin-top: 18px; padding: 0 14px 30px; }
+  .panel { padding: 20px; }
+  header { padding: 22px 18px; }
+  h1 { font-size: 25px; }
+}
+@media (max-width: 400px) { .roster { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header><h1>你的程序，来对战</h1><p>选择对手，在本机运行 C++ 程序，结束后观看每一局回放。</p></header>
+<main class="layout">
+<section class="panel"><div class="head"><h2>设置对战</h2><span class="badge">本地运行</span></div>
+<form id="form"><label class="legend" for="bot">你的程序文件夹</label><input id="bot" type="text" value="my-bot" required><p class="hint">默认运行 my-bot/bot.cpp。编辑并保存后即可对战，也可以填写其他含 bot.cpp 的文件夹路径。</p>
+<label class="legend">选择对手 <span id="count" class="badge"></span></label><div id="roster" class="roster"></div><p class="hint">加上你，一局需要 4–8 人。</p>
+<div class="controls"><div><label class="legend" for="games">对战场数</label><input id="games" type="number" min="1" max="100000" step="1" value="2" required></div><div><label class="legend" for="seed">起始种子</label><input id="seed" type="number" min="0" max="2147483647" step="1" value="1" required></div></div><p class="hint">每局种子依次加 1。场数越多，等待时间越长。</p><button id="start" type="submit">开始对战 →</button></form><footer>程序直接在本机编译和运行，能够访问本机资源。请只运行你信任的代码。</footer></section>
+<section class="panel"><div class="head"><h2>比赛结果</h2><span class="badge" id="state">等待开始</span></div><div id="results"><div class="empty">选好程序和对手，开始第一场对战。<br>比分汇总和每局回放会出现在这里。</div></div></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[char]));
+let limits = {min: 4, max: 8};
+let currentPage = 1;
+let currentJob = null;
+let timer = null;
+
+function updateCount() {
+  const count = document.querySelectorAll('#roster input:checked').length;
+  $('count').textContent = `已选 ${count} / ${limits.min - 1}–${limits.max - 1} 位`;
+}
+
+async function init() {
+  try {
+    const response = await fetch('/api/roster');
+    if (!response.ok) throw Error('无法读取对手名单');
+    const data = await response.json();
+    limits = data;
+    $('roster').innerHTML = data.roster.map((player, index) => `
+      <label class="choice">
+        <input type="checkbox" value="${escapeHtml(player.id)}" ${index < limits.min - 1 ? 'checked' : ''}>
+        <img src="/assets/avatars/${encodeURIComponent(player.character)}.png" alt="">
+        <span><b>${escapeHtml(player.name)}</b><small>${escapeHtml(player.version || '')}</small></span>
+      </label>`).join('');
+    $('roster').addEventListener('change', updateCount);
+    updateCount();
+  } catch (error) {
+    $('roster').innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+    $('start').disabled = true;
+  }
+}
+
+function render(job) {
+  currentPage = job.page;
+  $('state').textContent = job.status === 'done' ? '已完成' : job.status === 'error' ? '运行失败' : '正在进行';
+  let out = `<p class="status">已完成 ${job.completed} / ${job.games} 局</p>
+    <div class="progress"><span style="width:${100 * job.completed / job.games}%"></span></div>`;
+  if (job.error) out += `<p class="error">${escapeHtml(job.error)}</p>`;
+  if (job.totals?.length) {
+    const sorted = [...job.totals].sort((a, b) => b.score - a.score);
+    out += `<table><thead><tr><th>选手</th><th>总分</th><th>第一名</th><th>击杀</th></tr></thead>
+      <tbody>${sorted.map(player => `<tr><td>${escapeHtml(player.name)}</td><td>${player.score}</td>
+        <td>${player.wins}</td><td>${player.kills}</td></tr>`).join('')}</tbody></table>`;
+  }
+  if (job.matches?.length) {
+    out += `<div class="matches">${job.matches.map(match => `<div class="match">
+      <div><b>第 ${match.number} 局</b> <span>· 种子 ${match.seed}</span></div>
+      <a href="${escapeHtml(match.replay)}" target="_blank" rel="noopener">观看回放 ↗</a>
+      </div>`).join('')}</div>
+      <div class="pagination"><button type="button" data-page="${job.page - 1}" ${job.page <= 1 ? 'disabled' : ''}>上一页</button>
+      <span>第 ${job.page} / ${job.pages} 页</span>
+      <button type="button" data-page="${job.page + 1}" ${job.page >= job.pages ? 'disabled' : ''}>下一页</button></div>`;
+  }
+  $('results').innerHTML = out;
+}
+
+async function poll() {
+  try {
+    const requestedPage = currentPage;
+    const response = await fetch(`/api/jobs/${currentJob}?page=${requestedPage}`);
+    const job = await response.json();
+    if (!response.ok) throw Error(job.error);
+    if (requestedPage !== currentPage) return;
+    render(job);
+    if (job.status === 'running') timer = setTimeout(poll, 1000);
+    else $('start').disabled = false;
+  } catch (error) {
+    $('state').textContent = '连接失败';
+    $('results').innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+    $('start').disabled = false;
+  }
+}
+
+$('results').addEventListener('click', event => {
+  const button = event.target.closest('button[data-page]');
+  if (!button) return;
+  currentPage = Number(button.dataset.page);
+  clearTimeout(timer);
+  poll();
+});
+
+$('form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const opponents = [...document.querySelectorAll('#roster input:checked')].map(input => input.value);
+  if (opponents.length < limits.min - 1 || opponents.length > limits.max - 1) {
+    alert(`请选择 ${limits.min - 1}–${limits.max - 1} 位对手`);
+    return;
+  }
+  $('start').disabled = true;
+  $('state').textContent = '准备中';
+  try {
+    const response = await fetch('/api/jobs', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({bot: $('bot').value, opponents, games: Number($('games').value), seed: Number($('seed').value)})
+    });
+    const data = await response.json();
+    if (!response.ok) throw Error(data.error);
+    currentJob = data.id;
+    currentPage = 1;
+    poll();
+  } catch (error) {
+    $('state').textContent = '无法开始';
+    $('results').innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+    $('start').disabled = false;
+  }
+});
+init();
+</script>
+</body></html>
