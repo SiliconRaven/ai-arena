@@ -7,7 +7,7 @@ import threading
 from urllib.parse import parse_qs, urlsplit
 import uuid
 
-from arena import public_match
+from arena import package, public_match
 
 ROOT = Path(__file__).resolve().parent
 jobs = {}
@@ -49,6 +49,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(403, {'error': '禁止跨站访问'})
         if self.path == '/':
             return self.respond(200, (ROOT / 'index.html').read_bytes(), 'text/html; charset=utf-8')
+        if self.path == '/player-package.zip':
+            return self.respond(200, package.bundle(), 'application/zip')
         if self.path == '/api/roster':
             return self.respond(200, {'roster': public_match.roster(), 'min': public_match.RULES['min_players'],
                                       'max': public_match.RULES['max_players']})

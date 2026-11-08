@@ -13,7 +13,9 @@ RULES = json.loads((ROOT / 'game/rules.json').read_text(encoding='utf-8'))
 
 
 def roster():
-    return json.loads((ROOT / 'entrants/roster.json').read_text(encoding='utf-8'))
+    competitors = json.loads((ROOT / 'entrants/roster.json').read_text(encoding='utf-8'))
+    practice = json.loads((ROOT / 'entrants/practice-roster.json').read_text(encoding='utf-8'))
+    return competitors + practice
 
 
 def select(bot, ids):

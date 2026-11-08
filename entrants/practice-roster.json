@@ -1,0 +1,20 @@
+[
+  {
+    "id": "striker",
+    "name": "突击手 Striker",
+    "version": "本地陪练",
+    "character": null
+  },
+  {
+    "id": "warden",
+    "name": "守卫 Warden",
+    "version": "本地陪练",
+    "character": null
+  },
+  {
+    "id": "roamer",
+    "name": "游击手 Roamer",
+    "version": "本地陪练",
+    "character": null
+  }
+]

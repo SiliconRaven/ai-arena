@@ -39,6 +39,32 @@ python3 server.py
 
 在 [my-bot/bot.cpp](my-bot/bot.cpp) 中编写自己的策略。默认的 `main` 把基准策略 `step` 传给 `kb_step_worker::run_policy`；可以在同一文件里定义自己的策略函数，将它传给 `run_policy`。`baseline/` 保留了初始示例，方便对照。程序目录必须有 `bot.cpp`；每个顶层 `.cpp` 都参与编译，所需的头文件放在程序目录内。基准示例提供了 `include/step_worker.hpp` 和 `include/json.hpp`，`native/include/` 还包含可复制到程序目录的游戏引擎头文件。对局使用 `kb-step-json-1` 协议，每回合输出指令，详见 [RULES.md](RULES.md)。编译参数为 `-std=c++17 -O2 -fno-fast-math -ffp-contract=off`。
 
+## 让自己的 AI 写 bot
+
+把 [PROMPT.md](PROMPT.md) 的内容交给能读取本项目目录、编辑文件和运行命令的 AI 编程工具。提示词会引导它阅读规则，在 `my-bot/bot.cpp` 中实现策略，再和三种陪练试打。
+
+- `striker`（突击手）主动接近、轻锤和冲刺。
+- `warden`（守卫）偏向守内圈，近身蓄重锤反击。
+- `roamer`（游击手）边移动边投弹，保持距离。
+
+这些是 EP1 使用过的三种陪练。它们的源码在 `entrants/striker/`、`entrants/warden/` 和 `entrants/roamer/`，网页的对手列表也能选择。基准与陪练适合检查程序能否正常对局，并尝试不同打法。
+
+用当前的 `my-bot` 和三种陪练打两局：
+
+```powershell
+py -3 -m arena.public_match --bot my-bot --opponents striker warden roamer --games 2 --seed 1
+```
+
+也可以在网页下载独立的本地选手包，或运行：
+
+```powershell
+py -3 -m arena.package --out output/player-package.zip
+```
+
+解压 ZIP 后进入 `ai-arena-player/`，打开 `PROMPT.md` 交给自己的 AI。包内带齐规则、引擎与 SDK、基准模板、初始化好的 `my-bot/`、三种陪练、编译器调用入口和离线回放。运行环境与上面的 Windows / Linux 安装要求相同。每次打包都用 `baseline/` 初始化包内的 `my-bot/`。完成后将自己写好的整个 `my-bot/` 文件夹带回完整仓库，即可挑战视频里的十位选手。使用方法见 [选手包说明](player-package/README.md)。
+
+Linux / WSL 将上述命令开头的 `py -3` 换成 `python3`。
+
 ## 命令行
 
 对手 ID 见 `entrants/roster.json`。用自己的程序对阵三位选手，运行两局：

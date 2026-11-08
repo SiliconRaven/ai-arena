@@ -64,6 +64,7 @@ footer { font-size: 12px; color: #7a8996; margin-top: 22px; line-height: 1.6; }
 <main class="layout">
 <section class="panel"><div class="head"><h2>设置对战</h2><span class="badge">本地运行</span></div>
 <form id="form"><label class="legend" for="bot">你的程序文件夹</label><input id="bot" type="text" value="my-bot" required><p class="hint">默认运行 my-bot/bot.cpp。编辑并保存后即可对战，也可以填写其他含 bot.cpp 的文件夹路径。</p>
+<p class="hint"><a href="/player-package.zip" download>下载本地选手包</a> · 提示词、规则、基准、三种陪练和回放工具</p>
 <label class="legend">选择对手 <span id="count" class="badge"></span></label><div id="roster" class="roster"></div><p class="hint">加上你，一局需要 4–8 人。</p>
 <div class="controls"><div><label class="legend" for="games">对战场数</label><input id="games" type="number" min="1" max="100000" step="1" value="2" required></div><div><label class="legend" for="seed">起始种子</label><input id="seed" type="number" min="0" max="2147483647" step="1" value="1" required></div></div><p class="hint">每局种子依次加 1。场数越多，等待时间越长。</p><button id="start" type="submit">开始对战 →</button></form><footer>程序直接在本机编译和运行，能够访问本机资源。请只运行你信任的代码。</footer></section>
 <section class="panel"><div class="head"><h2>比赛结果</h2><span class="badge" id="state">等待开始</span></div><div id="results"><div class="empty">选好程序和对手，开始第一场对战。<br>比分汇总和每局回放会出现在这里。</div></div></section>
@@ -92,7 +93,7 @@ async function init() {
     $('roster').innerHTML = data.roster.map((player, index) => `
       <label class="choice">
         <input type="checkbox" value="${escapeHtml(player.id)}" ${index < limits.min - 1 ? 'checked' : ''}>
-        <img src="/assets/avatars/${encodeURIComponent(player.character)}.png" alt="">
+        ${player.character ? `<img src="/assets/avatars/${encodeURIComponent(player.character)}.png" alt="">` : ''}
         <span><b>${escapeHtml(player.name)}</b><small>${escapeHtml(player.version || '')}</small></span>
       </label>`).join('');
     $('roster').addEventListener('change', updateCount);
