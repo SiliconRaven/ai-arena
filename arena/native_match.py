@@ -5,11 +5,14 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
+import uuid
 
-ROOT = Path(__file__).resolve().parents[1]
+from arena import KNOCKBACK_ROOT
+
 COMPILER_FLAGS = ('-std=c++17', '-O2', '-fno-fast-math', '-ffp-contract=off')
 
 
@@ -39,10 +42,9 @@ if os.name == 'nt':
 EXE = '.exe' if os.name == 'nt' else ''
 
 
-def build_trusted(cache: Path) -> dict:
+def build_trusted(cache: Path, native: Path = KNOCKBACK_ROOT / 'native') -> dict:
     """The referee, supervisor and launcher, compiled from native/ into the build cache (`referee-<hash>/`, by
     sources, compiler and flags): native/ itself may be read-only (the contestant package)."""
-    native = ROOT / 'native'
     digest = hashlib.sha256(json.dumps([compiler(), REFEREE_FLAGS, TRUSTED_EXTRA]).encode())
     for path in sorted([*native.glob('*.cpp'), *(native / 'include').glob('*.hpp')]):
         digest.update(path.name.encode() + b'\0' + path.read_bytes() + b'\0')
@@ -52,12 +54,13 @@ def build_trusted(cache: Path) -> dict:
         target = out / (name + EXE)
         if target.is_file():
             continue
-        partial = out / f'.{name}.part{EXE}'
+        partial = out / f'.{name}.{uuid.uuid4().hex}.part{EXE}'
         built = subprocess.run([compiler(), *REFEREE_FLAGS, str(native / f'{name}.cpp'), *extra, '-o', str(partial)],
                                capture_output=True, text=True, errors='replace')
         if built.returncode:
+            partial.unlink(missing_ok=True)
             raise SystemExit(f'building the native referee ({name}) failed:\n' + built.stdout + built.stderr)
-        os.replace(partial, target)
+        install(partial, target)
     return {name: out / (name + EXE) for name in TRUSTED_EXTRA}
 
 
@@ -66,6 +69,17 @@ def folder_digest(folder: Path) -> str:
     for path in sorted(p for p in folder.rglob('*') if p.is_file()):
         digest.update(path.relative_to(folder).as_posix().encode() + b'\0' + path.read_bytes() + b'\0')
     return digest.hexdigest()
+
+
+def install(partial: Path, target: Path) -> None:
+    try:
+        if not target.is_file():
+            os.replace(partial, target)
+    except PermissionError:
+        if not target.is_file():
+            raise
+    finally:
+        partial.unlink(missing_ok=True)
 
 
 def build_program(folder: Path, cache: Path) -> Path:
@@ -82,23 +96,33 @@ def build_program(folder: Path, cache: Path) -> Path:
     if binary.is_file():
         return binary
     out.mkdir(parents=True, exist_ok=True)
-    if stage:
-        # MinGW may not accept non-ASCII paths; use an ASCII-named copy under the build cache.
-        with tempfile.TemporaryDirectory(prefix='source-', dir=out) as temporary:
-            staged = Path(temporary) / 'bot'
+    with tempfile.TemporaryDirectory(prefix='build-', dir=out) as temporary:
+        partial = Path(temporary) / binary.name
+        if stage:
+            # MinGW needs ASCII paths for sources, even when Python can read the original folder.
+            staged = Path(temporary) / 'source'
             shutil.copytree(folder, staged)
-            compiled = subprocess.run([compiler(), *COMPILER_FLAGS, *(p.name for p in sources), '-o', str(binary)],
-                                      cwd=staged, capture_output=True, text=True, errors='replace', timeout=300)
-    else:
-        compiled = subprocess.run([compiler(), *COMPILER_FLAGS, *map(str, sources), '-o', str(binary)],
+            folder = staged
+        compiled = subprocess.run([compiler(), *COMPILER_FLAGS, *(str(folder / p.name) for p in sources), '-o', str(partial)],
                                   cwd=folder, capture_output=True, text=True, errors='replace', timeout=300)
-    if compiled.returncode:
-        binary.unlink(missing_ok=True)
-        raise CompileError((compiled.stdout + compiled.stderr)[-65536:])
+        if compiled.returncode:
+            raise CompileError((compiled.stdout + compiled.stderr)[-65536:])
+        install(partial, binary)
     return binary
 
 
-def prepare(bots: list[tuple[str, Path]], rules: dict, cache: Path) -> dict:
+def windows_worker_limits(rules: dict) -> str:
+    sandbox = rules['sandbox']
+    size, unit = re.fullmatch(r'([1-9][0-9]*)([kKmMgG]?)', str(sandbox['memory'])).groups()
+    memory = int(size) * {'': 1, 'k': 2**10, 'm': 2**20, 'g': 2**30}[unit.lower()]
+    processes = int(sandbox['pids']) + 1  # Includes the launcher process.
+    # Keep the upstream fourfold headroom for latency-sensitive decisions.
+    cpu_rate = max(1, min(10000, round(40000 * float(sandbox['cpus']) / (os.cpu_count() or 1))))
+    return f'{memory}:{processes}:{cpu_rate}'
+
+
+def prepare(bots: list[tuple[str, Path]], rules: dict, cache: Path, *,
+            native: Path = KNOCKBACK_ROOT / 'native', limit_workers: bool = False) -> dict:
     """Compile each seat once; subsequent matches use these same binaries."""
     cache = Path(cache).resolve()
     names = [name for name, _ in bots]
@@ -106,7 +130,7 @@ def prepare(bots: list[tuple[str, Path]], rules: dict, cache: Path) -> dict:
         raise ValueError('bot names must be unique')
     if not int(rules['min_players']) <= len(names) <= int(rules['max_players']):
         raise ValueError(f"a match has {rules['min_players']}-{rules['max_players']} players, got {len(names)}")
-    trusted = build_trusted(cache)
+    trusted = build_trusted(cache, native)
     binaries, built = [], {}
     for seat, (_, folder) in enumerate(bots):
         key = str(Path(folder).resolve())
@@ -118,7 +142,8 @@ def prepare(bots: list[tuple[str, Path]], rules: dict, cache: Path) -> dict:
                 raise
         binaries.append(built[key])
     supervisor = str(trusted['step_supervisor'])
-    commands = [[supervisor, '--trusted-local-gated', str(trusted['step_boot']), '--trusted-local', str(binary)]
+    limits = ['--worker-limits', windows_worker_limits(rules)] if limit_workers and os.name == 'nt' else []
+    commands = [[supervisor, *limits, '--trusted-local-gated', str(trusted['step_boot']), '--trusted-local', str(binary)]
                 for binary in binaries]
     return {'referee': str(trusted['step_referee']), 'supervisor': supervisor,
             'commands': commands, 'names': names,

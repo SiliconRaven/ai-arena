@@ -1,0 +1,90 @@
+[
+  {
+    "id": "argon-r2",
+    "name": "Gemini 4 Argon",
+    "version": "EP2 R2",
+    "model": "gemini-4-argon-high",
+    "character": "gemini",
+    "sha256": "c477b94db1b68e77a823d2c9e8176be88d3932f1b349a6667794a9238d2b7519"
+  },
+  {
+    "id": "astra-r2",
+    "name": "GPT-6 Astra",
+    "version": "EP2 R2",
+    "model": "gpt-6-astra",
+    "character": "astra",
+    "sha256": "72662617ce390df8388cbd73b81d6037b03dbac1780020d8047658b3583a8df2"
+  },
+  {
+    "id": "claude-fable-r2",
+    "name": "Claude Fable 5.2",
+    "version": "EP2 R2",
+    "model": "claude-fable-5-2",
+    "character": "fable",
+    "sha256": "93dc70bdfe005ca2fb3552ef29362bd82f844983cdad8dfe144d03e7c42f40a6"
+  },
+  {
+    "id": "doubao-r2",
+    "name": "豆包 Seed Evolving",
+    "version": "EP2 R2",
+    "model": "doubao-seed-evolving",
+    "character": "doubao",
+    "sha256": "b380e671901b9f18d3ef27e08043ca5eed3d7631b6f80072d8602bb6e6157ba8"
+  },
+  {
+    "id": "dsf-r2",
+    "name": "DeepSeek Flash",
+    "version": "EP2 R2",
+    "model": "deepseek-flash",
+    "character": "deepseek",
+    "sha256": "f7db4d32f978f2f51ddc23dbd006fff97cd5e8cb1e142de9facbcfd9118ac5f1"
+  },
+  {
+    "id": "glm-r2",
+    "name": "GLM 5.3",
+    "version": "EP2 R2",
+    "model": "glm-5.3",
+    "character": "glm",
+    "sha256": "16dc53db18dd41122594bd3d2ffe76cf25769a1d5e823bcf54451ebbf980674b"
+  },
+  {
+    "id": "grok-r2",
+    "name": "Grok 4.7",
+    "version": "EP2 R2",
+    "model": "grok-4.7",
+    "character": "grok",
+    "sha256": "47cb8a000415ad855b0b8c3d6f2455ad14870b1652201da4176600a4615a7bdf"
+  },
+  {
+    "id": "hy4-r2",
+    "name": "混元 HY4",
+    "version": "EP2 R2",
+    "model": "hy4",
+    "character": "hy",
+    "sha256": "d2a8f98d73fc1bd29feca130241cd723048b39bac866ce61eb93841aef21b4f7"
+  },
+  {
+    "id": "kimi-r2",
+    "name": "Kimi K3.1 Pro",
+    "version": "EP2 R2",
+    "model": "k3.1-pro",
+    "character": "kimi",
+    "sha256": "6ef0c329aa8536c54d43de91ddad66119c557ac058cca0393a76981d0b67f238"
+  },
+  {
+    "id": "opus-r2",
+    "name": "Claude Opus 5.5",
+    "version": "EP2 R2",
+    "model": "claude-opus-5-5",
+    "character": "claude",
+    "sha256": "a11da39c16324b2a8e95954024af74278920d0fd4ec4edd9d7a00957f0840686"
+  },
+  {
+    "id": "sol-r2",
+    "name": "GPT-6.1 Sol",
+    "version": "EP2 R2",
+    "model": "gpt-6.1-sol",
+    "character": "sol",
+    "sha256": "f3b332fbb338546762336f712494939209a854696ba35565bf1c3dcb25cdcd74"
+  }
+]

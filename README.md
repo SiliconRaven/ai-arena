@@ -1,10 +1,16 @@
-# 擂台乱斗 · 本地对战
+# AI Arena · 本地对战
 
-带上自己的 C++ 程序，与比赛中选手的程序打一场擂台乱斗。每局 4–8 人：在逐渐缩小的方形擂台上移动、冲刺、挥锤、投掷炸弹，把对手撞下去。细则、观察和指令见 [RULES.md](RULES.md)，参数见 [game/rules.json](game/rules.json)。
+在同一个控制台选择游戏和 C++ 程序，本机运行对局并观看回放。
 
-内置 10 位选手，取自视频第一期第二轮正式比赛（EP1 R2）实际使用的交卷。每份程序的版本和完整 SHA-256 记录在 [选手名单](entrants/roster.json)。选手在擂台上使用各自的头像、小人和动作；你自己的程序默认显示为圆球。每个 HTML 回放都内嵌了该局用到的角色图，可单独分享、离线播放。源码采用 [MIT 许可证](LICENSE)。角色图片的已知来源见[美术说明](assets/CREDITS.md)。
+- **擂台乱斗**支持 4–8 人。在逐渐缩小的方形擂台上冲刺、挥锤、投弹，把对手撞下去。内置 10 份 EP1 R2 正式赛交卷和三种陪练。[规则](games/ai-knockback/workspace/RULES.md) · [选手名单](games/ai-knockback/entrants/roster.json) · [美术说明](games/ai-knockback/assets/CREDITS.md)
+- **AI Smash · 平台混战**每局 4 人。跳上平台，用攻击、防御、抓投和钩索把对手击飞出界。内置 11 份 EP2 R2 正式赛交卷和三种陪练，使用该轮冻结的 sm-1.3 规则。[规则](games/ai-smash/workspace/RULES.md) · [选手名单](games/ai-smash/entrants/roster.json) · [美术说明](games/ai-smash/assets/CREDITS.md)
 
-**写自己的 bot，只需编辑 [my-bot/bot.cpp](my-bot/bot.cpp) 并保存。** 文件夹里已经放好了能直接运行的基准程序和头文件。按下面的步骤启动网页，就能用刚保存的程序对战。
+我的B站空间：https://space.bilibili.com/3691002512541717?
+
+
+HTML 回放内嵌该局所需的素材，可单独分享、离线播放。源码采用 [MIT 许可证](LICENSE)。
+
+两款游戏分别位于 `games/ai-knockback/` 和 `games/ai-smash/`。每个游戏的 `workspace/` 存放规则说明、基准、自己的程序和陪练，`prompts/` 存放 AI 提示词。两款游戏共用 `arena/` 的编译与对战代码。
 
 ## 开始
 
@@ -31,51 +37,66 @@ python3 server.py
 
 ### 开始对战
 
-打开 <http://127.0.0.1:8786>。网页的「你的程序文件夹」默认填好 `my-bot`。选 3–7 位对手，设置场数（1–100000）和起始种子，点「开始对战」。如果已有其他程序，也可以在这里填它的文件夹路径。每场的种子递增 1，结束后可查看累计得分、第一名次数、击杀和每局回放。可在启动命令末尾加 `--port 端口号` 更改端口。
+打开 <http://127.0.0.1:8786>，选择游戏和参赛选手，设置场数（1–100000）和起始种子，点「开始对战」。AI Smash 默认选好四位内置选手。点「用自己的程序和陪练打」会加入当前游戏的 `workspace/my-bot/` 和三位陪练，也可以填写其他程序目录。
+
+加入自己的程序后，可以在「你的小人」里选择回放形象。
+
+每场的种子递增 1，结束后可查看累计得分、第一名次数、击杀和每局回放。可在启动命令末尾加 `--port 端口号` 更改端口。
 
 程序会在本机直接编译运行，没有 Docker 的网络、内存或 CPU 隔离。只运行你信任的源码；本地服务只监听 127.0.0.1。对局耗时取决于程序及场数，第一次需要编译。
 
 ## 写自己的程序
 
-在 [my-bot/bot.cpp](my-bot/bot.cpp) 中编写自己的策略。默认的 `main` 把基准策略 `step` 传给 `kb_step_worker::run_policy`；可以在同一文件里定义自己的策略函数，将它传给 `run_policy`。`baseline/` 保留了初始示例，方便对照。程序目录必须有 `bot.cpp`；每个顶层 `.cpp` 都参与编译，所需的头文件放在程序目录内。基准示例提供了 `include/step_worker.hpp` 和 `include/json.hpp`，`native/include/` 还包含可复制到程序目录的游戏引擎头文件。对局使用 `kb-step-json-1` 协议，每回合输出指令，详见 [RULES.md](RULES.md)。编译参数为 `-std=c++17 -O2 -fno-fast-math -ffp-contract=off`。
+AI Smash 的程序使用 `sm-step-json-1` 协议。直接编辑 [AI Smash 的 bot.cpp](games/ai-smash/workspace/my-bot/bot.cpp)，或把 [基准目录](games/ai-smash/workspace/baseline/) 复制到自己的文件夹。观察与指令见 [AI Smash 规则](games/ai-smash/workspace/RULES.md)。
+
+### 擂台乱斗
+
+在 [擂台乱斗的 bot.cpp](games/ai-knockback/workspace/my-bot/bot.cpp) 中编写自己的策略。默认的 `main` 把基准策略 `step` 传给 `kb_step_worker::run_policy`；可以在同一文件里定义自己的策略函数，将它传给 `run_policy`。[基准目录](games/ai-knockback/workspace/baseline/) 保留了初始示例，方便对照。程序目录必须有 `bot.cpp`；每个顶层 `.cpp` 都参与编译，所需的头文件放在程序目录内。基准示例提供了 `include/step_worker.hpp` 和 `include/json.hpp`，[裁判头文件](games/ai-knockback/native/include/) 中还有可复制到程序目录的游戏引擎。对局使用 `kb-step-json-1` 协议，每回合输出指令，详见 [擂台乱斗规则](games/ai-knockback/workspace/RULES.md)。编译参数为 `-std=c++17 -O2 -fno-fast-math -ffp-contract=off`。
 
 ## 让自己的 AI 写 bot
 
-把 [PROMPT.md](PROMPT.md) 的内容交给能读取本项目目录、编辑文件和运行命令的 AI 编程工具。提示词会引导它阅读规则，在 `my-bot/bot.cpp` 中实现策略，再和三种陪练试打。
+在控制台选择游戏，点「下载选手包」，解压并用自己的 AI 编程工具打开 `ai-arena-player/`。把对应游戏 `prompts/PROMPT.md` 的内容交给它，AI 就可以编辑该游戏 `workspace/my-bot/bot.cpp`、编译并和三个陪练试打。双击 `start.cmd` 也可以在网页试打。已经克隆完整仓库的用户可以直接点「查看 AI 提示词」，在相同的目录工作。
 
-- `striker`（突击手）主动接近、轻锤和冲刺。
-- `warden`（守卫）偏向守内圈，近身蓄重锤反击。
-- `roamer`（游击手）边移动边投弹，保持距离。
+- **擂台乱斗**的陪练会近身冲撞、守内圈反击或游走投弹。[提示词](games/ai-knockback/prompts/PROMPT.md) · [选手包说明](games/ai-knockback/PLAYER_PACKAGE.md)
+- **AI Smash**的陪练会近身抓投、守中路防御反打或拉开距离打光波。[提示词](games/ai-smash/prompts/PROMPT.md) · [选手包说明](games/ai-smash/PLAYER_PACKAGE.md)
 
-这些是 EP1 使用过的三种陪练。它们的源码在 `entrants/striker/`、`entrants/warden/` 和 `entrants/roamer/`，网页的对手列表也能选择。基准与陪练适合检查程序能否正常对局，并尝试不同打法。
-
-用当前的 `my-bot` 和三种陪练打两局：
+在完整仓库中用自己的程序和三种陪练打两局：
 
 ```powershell
-py -3 -m arena.public_match --bot my-bot --opponents striker warden roamer --games 2 --seed 1
+py -3 -m arena.public_match --game knockback --bot games/ai-knockback/workspace/my-bot --opponents striker warden roamer --games 2 --seed 1
+py -3 -m arena.public_match --game smash --bot games/ai-smash/workspace/my-bot --opponents striker warden roamer --games 2 --seed 1
 ```
 
-也可以在网页下载独立的本地选手包，或运行：
+也可以从命令行打包：
 
 ```powershell
 py -3 -m arena.package --out output/player-package.zip
+py -3 -m arena.package --game smash --out output/smash-player-package.zip
 ```
 
-解压 ZIP 后进入 `ai-arena-player/`，打开 `PROMPT.md` 交给自己的 AI。包内带齐规则、引擎与 SDK、基准模板、初始化好的 `my-bot/`、三种陪练、编译器调用入口和离线回放。运行环境与上面的 Windows / Linux 安装要求相同。每次打包都用 `baseline/` 初始化包内的 `my-bot/`。完成后将自己写好的整个 `my-bot/` 文件夹带回完整仓库，即可挑战视频里的十位选手。使用方法见 [选手包说明](player-package/README.md)。
+每个包用对应游戏的基准程序初始化 `workspace/my-bot/`。写好后可以把整个程序目录带回完整仓库，挑战视频里的正式选手。
 
 Linux / WSL 将上述命令开头的 `py -3` 换成 `python3`。
 
 ## 命令行
 
-对手 ID 见 `entrants/roster.json`。用自己的程序对阵三位选手，运行两局：
+省略 `--game` 时运行擂台乱斗。用自己的程序对阵三位选手，运行两局：
 
 ```powershell
-py -3 -m arena.public_match --bot my-bot --opponents astra terra opus --games 2 --seed 1
+py -3 -m arena.public_match --bot games/ai-knockback/workspace/my-bot --opponents astra terra opus --games 2 --seed 1
 ```
+
+用四份正式赛交卷跑一局 AI Smash：
+
+```powershell
+py -3 -m arena.public_match --game smash --opponents argon-r2 astra-r2 claude-fable-r2 doubao-r2 --games 1 --seed 1
+```
+
+加 `--bot 文件夹` 时，AI Smash 选三位内置选手。两款游戏的 ID 分别见各自的选手名单。
 
 Linux / WSL 将上面命令开头的 `py -3` 换成 `python3`。
 
-每批开始时编译一次，整批使用相同的程序；中途编辑源码不影响已开始的对战。每次运行在 `output/` 下创建新目录，保存逐局 `.html`、完整 `.json` 和 `summary.json`；HTML 可直接用浏览器离线打开。编译缓存也在 `output/`。汇总将每局原始得分相加，不是正式赛的跨人数归一化排名。结果与缓存可随时删除，不纳入 Git。
+每批开始时编译一次，整批使用相同的程序。每次运行在 `output/` 下创建新目录，保存逐局 `.html`、完整 `.json` 和 `summary.json`。编译缓存也在 `output/`。汇总将每局原始得分相加。结果与缓存可随时删除，不纳入 Git。
 
 ## 打包公开版
 

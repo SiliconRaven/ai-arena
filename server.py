@@ -2,14 +2,12 @@
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
-from pathlib import Path
 import threading
 from urllib.parse import parse_qs, urlsplit
 import uuid
 
-from arena import package, public_match
+from arena import ROOT, package, public_match
 
-ROOT = Path(__file__).resolve().parent
 jobs = {}
 match_lock = threading.Lock()
 jobs_guard = threading.Lock()
@@ -49,15 +47,30 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(403, {'error': '禁止跨站访问'})
         if self.path == '/':
             return self.respond(200, (ROOT / 'index.html').read_bytes(), 'text/html; charset=utf-8')
-        if self.path == '/player-package.zip':
-            return self.respond(200, package.bundle(), 'application/zip')
+        url = urlsplit(self.path)
+        if url.path in ('/player-package.zip', '/prompt.txt'):
+            game_id = parse_qs(url.query).get('game', [public_match.DEFAULT_GAME.id])[0]
+            game = public_match.GAMES.get(game_id)
+            if game is None:
+                return self.respond(404, {'error': '找不到游戏'})
+            if url.path == '/player-package.zip':
+                return self.respond(200, package.bundle(game), 'application/zip')
+            return self.respond(200, (game.root / 'prompts/PROMPT.md').read_bytes(), 'text/plain; charset=utf-8')
+        if self.path == '/api/games':
+            return self.respond(200, [game.options() for game in public_match.GAMES.values()])
         if self.path == '/api/roster':
             return self.respond(200, {'roster': public_match.roster(), 'min': public_match.RULES['min_players'],
                                       'max': public_match.RULES['max_players']})
-        url = urlsplit(self.path)
         if url.path.startswith('/assets/'):
-            directory = ROOT / 'assets'
-            image = (directory / url.path.removeprefix('/assets/')).resolve()
+            relative = url.path.removeprefix('/assets/')
+            game_id, _, game_asset = relative.partition('/')
+            game = public_match.GAMES.get(game_id)
+            if game is None:
+                game = public_match.DEFAULT_GAME
+            else:
+                relative = game_asset
+            directory = game.root / 'assets'
+            image = (directory / relative).resolve()
             if image.is_relative_to(directory) and image.suffix == '.png' and image.is_file():
                 return self.respond(200, image.read_bytes(), 'image/png')
             return self.respond(404, {'error': '找不到角色图片'})
@@ -86,16 +99,24 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < length <= 65536:
                 raise ValueError('请求大小不正确')
             data = json.loads(self.rfile.read(length))
-            bots = public_match.select(data['bot'], data['opponents'])
+            game = public_match.GAMES.get(data.get('game', public_match.DEFAULT_GAME.id))
+            if game is None:
+                raise ValueError('请选择有效的游戏')
+            bot, character = data.get('bot'), data.get('character')
+            if character is not None and (bot is None or character not in game.characters):
+                raise ValueError('请选择有效的小人形象')
+            bots = public_match.select(bot, data['opponents'], game=game)
             games, seed = data['games'], data['seed']
             if type(games) is not int or not 1 <= games <= 100000 or type(seed) is not int or seed < 0 or seed + games - 1 > 2**31 - 1:
                 raise ValueError('场数或种子不正确')
-        except (KeyError, TypeError, ValueError, OSError) as exc:
+        except (AttributeError, KeyError, TypeError, ValueError, OSError) as exc:
             return self.respond(400, {'error': str(exc)})
         if not match_lock.acquire(blocking=False):
             return self.respond(409, {'error': '已有对战正在进行，请等待完成'})
         job_id = uuid.uuid4().hex
-        jobs[job_id] = {'status': 'running', 'games': games, 'completed': 0, 'matches': [], 'totals': []}
+        with jobs_guard:
+            jobs[job_id] = {'status': 'running', 'game': game.id, 'game_title': game.title, 'games': games,
+                            'completed': 0, 'matches': [], 'totals': []}
 
         def run():
             def progress(state):
@@ -107,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
                     jobs[job_id]['matches'].append(match)
 
             try:
-                public_match.play(bots, games, seed, progress, on_match)
+                public_match.play(bots, games, seed, progress, on_match, game=game, character=character)
             except (Exception, SystemExit) as exc:
                 with jobs_guard:
                     jobs[job_id].update(status='error', error=str(exc))

@@ -1,4 +1,9 @@
 * text=auto eol=lf
 *.cmd text eol=crlf
-entrants/**/*.cpp -text
-entrants/**/*.hpp -text
+games/*/entrants/**/*.cpp -text
+games/*/entrants/**/*.hpp -text
+games/*/workspace/practice/**/*.cpp -text
+games/*/workspace/practice/**/*.hpp -text
+games/ai-smash/rules.json -text
+games/ai-smash/native/**/*.cpp -text
+games/ai-smash/native/**/*.hpp -text

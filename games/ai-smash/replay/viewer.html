@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>对局回放 · ai-smash</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="game.css">
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="picker" class="panel" hidden>
+  <h1>对局回放</h1>
+  <p>选一份回放文件（<code>.json</code>、<code>.json.gz</code> 或已导出的 <code>.html</code>），或拖进窗口。</p>
+  <input id="file" type="file" accept=".json,.gz,.html,application/json,text/html">
+  <p id="load-error" class="error"></p>
+</div>
+
+<header id="top" class="panel" hidden>
+  <div class="clock main"><span class="label">剩余时间</span><strong id="turn">0:00</strong></div>
+  <div class="clock"><span class="label">还在场上</span><strong id="alive"></strong></div>
+</header>
+
+<div id="banner" class="panel" hidden></div>
+
+<section id="side" class="panel" hidden>
+  <h2>排名</h2>
+  <div id="board"></div>
+</section>
+
+<section id="feed" class="panel" hidden>
+  <h2>击飞</h2>
+  <ol id="feed-list"></ol>
+</section>
+
+<footer id="controls" class="panel" hidden>
+  <button id="first" title="回到开头">⏮</button>
+  <button id="prev" title="上一回合（←）">◀</button>
+  <button id="play" class="primary" title="播放／暂停（空格）">▶</button>
+  <button id="next" title="下一回合（→）">▶</button>
+  <button id="last" title="跳到终局">⏭</button>
+  <select id="speed" title="速度">
+    <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option>
+    <option value="2">2×</option><option value="4">4×</option>
+  </select>
+  <input id="scrub" type="range" min="0" value="0" aria-label="回合">
+  <button id="fit" title="回到全景">⤢</button>
+  <span id="meta" class="dim"></span>
+</footer>
+
+<script>
+const MATCH_ART = /*MATCH_ART*/null;
+const REPLAY=/*REPLAY*/null;
+const COLORS = [];
+if (REPLAY) {
+const header = REPLAY.header;
+}
+</script>
+<script src="art.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
